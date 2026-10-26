@@ -38,11 +38,12 @@
 }
 
 .section-header {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #e4eaf3;
   padding: var(--space-md) var(--space-lg);
 }
 
 .section-title {
+  color: #172b4d;
   font-size: 1rem;
   font-weight: 600;
   display: flex;
@@ -51,10 +52,10 @@
 }
 
 .count-badge {
-  background: rgba(99, 120, 255, 0.12);
-  border: 1px solid rgba(99, 120, 255, 0.2);
+  background: #eef2ff;
+  border: 1px solid #cbd8ff;
   border-radius: var(--radius-full);
-  color: var(--color-primary-light);
+  color: #3150cf;
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.1rem 0.5rem;
@@ -69,8 +70,8 @@
 
 .user-card {
   align-items: center;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--color-border);
+  background: #fff;
+  border: 1px solid #dfe7f3;
   border-radius: var(--radius-lg);
   display: flex;
   gap: var(--space-md);
@@ -79,9 +80,9 @@
 }
 
 .user-card:hover {
-  background: rgba(99, 120, 255, 0.04);
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-card);
+  background: #f8faff;
+  border-color: #bfcff0;
+  box-shadow: 0 8px 20px rgba(48, 71, 116, 0.08);
 }
 
 .user-card-avatar {
@@ -105,7 +106,7 @@
 }
 
 .user-card-name {
-  color: var(--text-primary);
+  color: #172b4d;
   font-size: 0.9375rem;
   font-weight: 600;
   overflow: hidden;
@@ -114,7 +115,7 @@
 }
 
 .user-card-email {
-  color: var(--text-secondary);
+  color: #52709d;
   font-size: 0.8125rem;
   margin-top: 0.125rem;
   overflow: hidden;
@@ -129,8 +130,20 @@
   margin-top: 0.5rem;
 }
 
+.admin-users-page .badge-admin {
+  background: #eef2ff;
+  border-color: #cbd8ff;
+  color: #3150cf;
+}
+
+.admin-users-page .badge-employee {
+  background: #eaf8ff;
+  border-color: #b9e5f7;
+  color: #1479a6;
+}
+
 .user-card-date {
-  color: var(--text-muted);
+  color: #667085;
   font-size: 0.75rem;
 }
 
@@ -141,7 +154,7 @@
   gap: var(--space-md);
   justify-content: center;
   padding: var(--space-2xl);
-  color: var(--text-secondary);
+  color: #667085;
 }
 
 @media (max-width: 768px) {
