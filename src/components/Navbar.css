@@ -1,0 +1,127 @@
+.navbar {
+  align-items: center;
+  background: rgba(15, 22, 41, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--space-xl);
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 64px;
+}
+
+.navbar-brand {
+  align-items: center;
+  display: flex;
+  gap: var(--space-sm);
+  text-decoration: none;
+}
+
+.navbar-logo {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(99, 120, 255, 0.2), rgba(99, 120, 255, 0.05));
+  border: 1px solid rgba(99, 120, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-primary-light);
+  display: flex;
+  justify-content: center;
+  padding: 0.4rem;
+}
+
+.navbar-title {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #fff, var(--color-primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navbar-links {
+  align-items: center;
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.nav-link {
+  align-items: center;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  display: flex;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 0.4rem;
+  padding: 0.45rem 0.875rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+  background: rgba(99, 120, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.nav-link.active {
+  background: rgba(99, 120, 255, 0.12);
+  color: var(--color-primary-light);
+}
+
+.navbar-user {
+  align-items: center;
+  display: flex;
+  gap: var(--space-md);
+}
+
+.user-info {
+  align-items: center;
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.user-avatar {
+  align-items: center;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  font-size: 0.875rem;
+  font-weight: 700;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+  box-shadow: 0 0 0 2px rgba(99, 120, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.user-details {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 var(--space-md);
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .user-details {
+    display: none;
+  }
+}
