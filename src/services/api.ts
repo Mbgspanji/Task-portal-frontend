@@ -47,6 +47,8 @@ export const taskApi = {
   getTasks: () => api.get('/api/tasks'),
   createTask: (data: { title: string; description: string; status: string }) =>
     api.post('/api/tasks', data),
+  updateTask: (taskId: number, data: { title: string; description: string }) =>
+    api.patch(`/api/tasks/${taskId}`, data),
   updateStatus: (taskId: number, status: string) =>
     api.patch(`/api/tasks/${taskId}/status`, { status }),
   deleteTask: (taskId: number) => api.delete(`/api/tasks/${taskId}`),

@@ -22,6 +22,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <DashboardPage taskOnly />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected Routes — admin only */}
           <Route

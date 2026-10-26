@@ -33,73 +33,40 @@ const LoginPage: FC = () => {
     }
   };
 
-  const fillCredentials = (role: 'admin' | 'employee') => {
-    if (role === 'admin') {
-      setEmail('admin@securetask.com');
-      setPassword('Admin@12345');
-    } else {
-      setEmail('employee@securetask.com');
-      setPassword('Employee@12345');
-    }
-  };
-
   return (
     <div className="login-page">
-      {/* Background elements */}
-      <div className="login-bg">
-        <div className="bg-orb bg-orb-1" />
-        <div className="bg-orb bg-orb-2" />
-        <div className="bg-grid" />
-      </div>
-
       <div className="login-container fade-in">
-        {/* Header */}
-        <div className="login-header">
-          <div className="login-logo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L4 6V12C4 16.4183 7.58172 20 12 22C16.4183 20 20 16.4183 20 12V6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="rgba(99,120,255,0.3)"/>
-              <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        <section className="login-welcome" aria-label="Welcome">
+          <div className="welcome-shape welcome-shape-one" />
+          <div className="welcome-shape welcome-shape-two" />
+          <div className="welcome-shape welcome-shape-three" />
+          <div className="welcome-content">
+            <div className="login-logo">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L4 6V12C4 16.4183 7.58172 20 12 22C16.4183 20 20 12V6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="rgba(255,255,255,0.2)"/>
+                <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p className="welcome-kicker">Welcome to</p>
+            <h1>SecureTask Portal</h1>
+            <p className="welcome-copy">Organize your work, collaborate with your team, and stay on track.</p>
           </div>
-          <h1 className="login-title">SecureTask Portal</h1>
-          <p className="login-subtitle">Sign in to access your workspace</p>
-        </div>
+        </section>
 
-        {/* Demo credentials */}
-        <div className="demo-credentials">
-          <p className="demo-label">Quick Login (Demo)</p>
-          <div className="demo-buttons">
-            <button
-              type="button"
-              id="btn-demo-admin"
-              className="demo-btn"
-              onClick={() => fillCredentials('admin')}
-            >
-              <span className="badge badge-admin">Admin</span>
-              admin@securetask.com
-            </button>
-            <button
-              type="button"
-              id="btn-demo-employee"
-              className="demo-btn"
-              onClick={() => fillCredentials('employee')}
-            >
-              <span className="badge badge-employee">Employee</span>
-              employee@securetask.com
-            </button>
+        <section className="login-form-panel">
+          <div className="login-header">
+            <h2 className="login-title">Sign in</h2>
+            <p className="login-subtitle">Enter your details to access your workspace</p>
           </div>
-        </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="alert alert-error" role="alert">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="alert alert-error" role="alert">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              {error}
+            </div>
+          )}
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="login-form" noValidate>
+          <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
             <label htmlFor="email" className="form-label">Email Address</label>
             <div className="input-wrapper">
@@ -167,11 +134,12 @@ const LoginPage: FC = () => {
               </>
             )}
           </button>
-        </form>
+          </form>
 
-        <p className="login-footer">
-          🛡️ Protected by industry-standard JWT authentication & bcrypt encryption
-        </p>
+          <p className="login-footer">
+            Protected by secure JWT authentication
+          </p>
+        </section>
       </div>
     </div>
   );

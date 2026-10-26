@@ -13,6 +13,95 @@
   height: 64px;
 }
 
+/* Dashboard uses the navbar as a compact left navigation panel. */
+.dashboard-page > .navbar {
+  align-items: stretch;
+  background: #3150cf;
+  border: 0;
+  border-radius: 0;
+  bottom: 0;
+  box-shadow: 6px 0 18px rgba(34, 57, 134, 0.12);
+  flex-direction: column;
+  gap: 2rem;
+  height: 100vh;
+  justify-content: flex-start;
+  left: 0;
+  padding: 1.75rem 1rem;
+  position: fixed;
+  top: 0;
+  width: 236px;
+}
+
+.dashboard-page > .navbar .navbar-brand {
+  padding: 0 0.45rem;
+}
+
+.dashboard-page > .navbar .navbar-logo {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.dashboard-page > .navbar .navbar-title {
+  background: none;
+  color: #fff;
+  -webkit-text-fill-color: initial;
+}
+
+.dashboard-page > .navbar .navbar-links {
+  align-items: stretch;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dashboard-page > .navbar .nav-link {
+  color: rgba(255, 255, 255, 0.76);
+  padding: 0.7rem 0.8rem;
+}
+
+.dashboard-page > .navbar .nav-link:hover,
+.dashboard-page > .navbar .nav-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.dashboard-page > .navbar .navbar-user {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.dashboard-page > .navbar .user-info {
+  padding: 0 0.45rem;
+}
+
+.dashboard-page > .navbar .user-name {
+  color: #fff;
+}
+
+.dashboard-page > .navbar .user-details {
+  display: flex;
+}
+
+.dashboard-page > .navbar .user-avatar {
+  background: #fff;
+  color: #3150cf;
+  box-shadow: none;
+}
+
+.dashboard-page > .navbar .btn-ghost {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  justify-content: center;
+}
+
+.dashboard-page > .navbar .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: transparent;
+  color: #fff;
+}
+
 .navbar-brand {
   align-items: center;
   display: flex;
@@ -119,6 +208,21 @@
 
   .navbar-links {
     display: none;
+  }
+
+  .dashboard-page > .navbar {
+    align-items: center;
+    bottom: auto;
+    flex-direction: row;
+    gap: var(--space-md);
+    height: 64px;
+    padding: 0 var(--space-md);
+    width: 100%;
+  }
+
+  .dashboard-page > .navbar .navbar-user {
+    align-items: center;
+    flex-direction: row;
   }
 
   .user-details {

@@ -58,7 +58,7 @@ const AdminUsersPage: FC = () => {
   };
 
   return (
-    <div className="admin-users-page">
+    <div className="admin-users-page dashboard-page">
       <Navbar />
       <main className="admin-main">
         <div className="container">
