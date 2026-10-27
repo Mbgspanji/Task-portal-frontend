@@ -1,8 +1,56 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FC, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './LoginPage.css';
+
+const LOGIN_ATTEMPT_LIMIT = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_ATTEMPTS_STORAGE_KEY = 'secure-task-login-attempts';
+
+type LoginAttempts = Record<string, number[]>;
+
+const getLoginAttempts = (email: string): number[] => {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) return [];
+
+  const storedAttempts = localStorage.getItem(LOGIN_ATTEMPTS_STORAGE_KEY);
+  if (!storedAttempts) return [];
+
+  try {
+    const attempts = JSON.parse(storedAttempts) as LoginAttempts;
+    return (attempts[normalizedEmail] || [])
+      .filter((timestamp) => Date.now() - timestamp < LOGIN_WINDOW_MS);
+  } catch {
+    localStorage.removeItem(LOGIN_ATTEMPTS_STORAGE_KEY);
+    return [];
+  }
+};
+
+const saveLoginAttempt = (email: string): number[] => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const recentAttempts = getLoginAttempts(normalizedEmail);
+  const updatedAttempts = [...recentAttempts, Date.now()];
+  const storedAttempts = localStorage.getItem(LOGIN_ATTEMPTS_STORAGE_KEY);
+  const attempts = storedAttempts ? JSON.parse(storedAttempts) as LoginAttempts : {};
+
+  localStorage.setItem(
+    LOGIN_ATTEMPTS_STORAGE_KEY,
+    JSON.stringify({ ...attempts, [normalizedEmail]: updatedAttempts })
+  );
+
+  return updatedAttempts;
+};
+
+const clearLoginAttempts = (email: string) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const storedAttempts = localStorage.getItem(LOGIN_ATTEMPTS_STORAGE_KEY);
+  if (!storedAttempts) return;
+
+  const attempts = JSON.parse(storedAttempts) as LoginAttempts;
+  delete attempts[normalizedEmail];
+  localStorage.setItem(LOGIN_ATTEMPTS_STORAGE_KEY, JSON.stringify(attempts));
+};
 
 const LoginPage: FC = () => {
   const [email, setEmail] = useState('');
@@ -10,24 +58,75 @@ const LoginPage: FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [lockoutEmail, setLockoutEmail] = useState('');
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const normalizedEmail = email.trim().toLowerCase();
+  const storedAttempts = getLoginAttempts(email);
+  const storedLockoutUntil = storedAttempts.length >= LOGIN_ATTEMPT_LIMIT
+    ? storedAttempts[storedAttempts.length - LOGIN_ATTEMPT_LIMIT] + LOGIN_WINDOW_MS
+    : null;
+  const activeLockoutUntil = lockoutEmail === normalizedEmail && lockoutUntil
+    ? lockoutUntil
+    : storedLockoutUntil;
+
+  useEffect(() => {
+    if (!activeLockoutUntil) return;
+
+    const timer = window.setTimeout(() => {
+      setLockoutUntil(null);
+      setLockoutEmail('');
+      setError('');
+    }, Math.max(0, activeLockoutUntil - Date.now()));
+
+    return () => window.clearTimeout(timer);
+  }, [activeLockoutUntil]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const recentAttempts = getLoginAttempts(email);
+    if (recentAttempts.length >= LOGIN_ATTEMPT_LIMIT) {
+      setLockoutEmail(normalizedEmail);
+      setLockoutUntil(recentAttempts[recentAttempts.length - LOGIN_ATTEMPT_LIMIT] + LOGIN_WINDOW_MS);
+      setError('Too many failed login attempts. Please try again in 15 minutes.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       await login(email, password);
+      clearLoginAttempts(email);
       navigate('/dashboard', { replace: true });
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(
-        axiosErr?.response?.data?.message ||
-        'Login failed. Please check your credentials.'
-      );
+      const axiosErr = err as {
+        response?: { data?: { message?: string }; status?: number };
+      };
+
+      if (axiosErr?.response?.status === 429) {
+        setError(
+          axiosErr.response.data?.message ||
+          'Too many login attempts. Please try again in 15 minutes.'
+        );
+      } else {
+        const attempts = saveLoginAttempt(email);
+        const remainingAttempts = LOGIN_ATTEMPT_LIMIT - attempts.length;
+        if (remainingAttempts <= 0) {
+          setLockoutEmail(normalizedEmail);
+          setLockoutUntil(attempts[attempts.length - LOGIN_ATTEMPT_LIMIT] + LOGIN_WINDOW_MS);
+          setError('Too many failed login attempts. Please try again in 15 minutes.');
+        } else {
+          setError(
+            axiosErr?.response?.data?.message ||
+            `Login failed. ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining in the next 15 minutes.`
+          );
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -98,12 +197,13 @@ const LoginPage: FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                disabled={isLoading}
+                disabled={isLoading || activeLockoutUntil !== null}
               />
               <button
                 type="button"
                 className="input-action"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading || activeLockoutUntil !== null}
                 tabIndex={-1}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -120,7 +220,7 @@ const LoginPage: FC = () => {
             type="submit"
             id="btn-login"
             className="btn btn-primary btn-full"
-            disabled={isLoading}
+            disabled={isLoading || activeLockoutUntil !== null}
           >
             {isLoading ? (
               <>
