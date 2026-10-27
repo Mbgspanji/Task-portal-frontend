@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { FC, FormEvent } from 'react';
 import { adminApi } from '../services/api';
+import type { User } from '../utils/types';
 import Navbar from '../components/Navbar';
 import './AdminUsersPage.css';
 
-const AdminUsersPage = () => {
-  const [users, setUsers] = useState([]);
+const AdminUsersPage: FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -36,7 +38,7 @@ const AdminUsersPage = () => {
     void Promise.resolve().then(fetchUsers);
   }, [fetchUsers]);
 
-  const handleCreateEmployee = async (e) => {
+  const handleCreateEmployee = async (e: FormEvent) => {
     e.preventDefault();
     setFormError('');
     setIsCreating(true);
@@ -49,8 +51,9 @@ const AdminUsersPage = () => {
       setPassword('');
       setSuccessMsg('Employee account created successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err) {
-      setFormError(err?.response?.data?.message || 'Failed to create employee.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setFormError(axiosErr?.response?.data?.message || 'Failed to create employee.');
     } finally {
       setIsCreating(false);
     }
