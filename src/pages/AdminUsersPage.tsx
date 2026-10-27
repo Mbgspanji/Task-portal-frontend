@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { FC, FormEvent } from 'react';
 import { adminApi } from '../services/api';
-import type { User } from '../utils/types';
 import Navbar from '../components/Navbar';
 import './AdminUsersPage.css';
 
-const AdminUsersPage: FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+const AdminUsersPage = () => {
+  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -19,6 +17,8 @@ const AdminUsersPage: FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formError, setFormError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [userPage, setUserPage] = useState(1);
+  const usersPerPage = 10;
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -36,7 +36,7 @@ const AdminUsersPage: FC = () => {
     void Promise.resolve().then(fetchUsers);
   }, [fetchUsers]);
 
-  const handleCreateEmployee = async (e: FormEvent) => {
+  const handleCreateEmployee = async (e) => {
     e.preventDefault();
     setFormError('');
     setIsCreating(true);
@@ -49,13 +49,23 @@ const AdminUsersPage: FC = () => {
       setPassword('');
       setSuccessMsg('Employee account created successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setFormError(axiosErr?.response?.data?.message || 'Failed to create employee.');
+    } catch (err) {
+      setFormError(err?.response?.data?.message || 'Failed to create employee.');
     } finally {
       setIsCreating(false);
     }
   };
+
+  const orderedUsers = [...users].sort((a, b) => {
+    const dateDifference = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    return dateDifference || a.id - b.id;
+  });
+  const userPageCount = Math.max(1, Math.ceil(orderedUsers.length / usersPerPage));
+  const currentUserPage = Math.min(userPage, userPageCount);
+  const paginatedUsers = orderedUsers.slice(
+    (currentUserPage - 1) * usersPerPage,
+    currentUserPage * usersPerPage
+  );
 
   return (
     <div className="admin-users-page dashboard-page">
@@ -103,28 +113,70 @@ const AdminUsersPage: FC = () => {
                 <p>Loading users...</p>
               </div>
             ) : (
-              <div className="users-grid">
-                {users.map((u) => (
-                  <div key={u.id} className="user-card">
-                    <div className="user-card-avatar">
-                      {u.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="user-card-info">
-                      <p className="user-card-name">{u.name}</p>
-                      <p className="user-card-email">{u.email}</p>
-                      <div className="user-card-meta">
-                        <span className={`badge ${u.role === 'admin' ? 'badge-admin' : 'badge-employee'}`}>
-                          {u.role}
-                        </span>
-                        <span className="user-card-date">
-                          Joined {new Date(u.created_at).toLocaleDateString('en-US', {
+              <div className="table-wrapper users-table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>User</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedUsers.map((u, index) => (
+                      <tr key={u.id}>
+                        <td className="row-num">{(currentUserPage - 1) * usersPerPage + index + 1}</td>
+                        <td>
+                          <div className="user-cell">
+                            <div className="mini-avatar">{u.name.charAt(0).toUpperCase()}</div>
+                            <span className="user-table-name">{u.name}</span>
+                          </div>
+                        </td>
+                        <td className="user-table-email">{u.email}</td>
+                        <td>
+                          <span className={`badge ${u.role === 'admin' ? 'badge-admin' : 'badge-employee'}`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="user-card-date">
+                          {new Date(u.created_at).toLocaleDateString('en-US', {
                             year: 'numeric', month: 'short', day: 'numeric'
                           })}
-                        </span>
-                      </div>
-                    </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="datatable-footer">
+                  <span className="datatable-summary">
+                    Showing {orderedUsers.length === 0 ? 0 : (currentUserPage - 1) * usersPerPage + 1}
+                    {' '}-{' '}
+                    {Math.min(currentUserPage * usersPerPage, orderedUsers.length)} of {orderedUsers.length}
+                  </span>
+                  <div className="datatable-pagination" aria-label="User table pagination">
+                    <button
+                      type="button"
+                      className="datatable-page-button"
+                      onClick={() => setUserPage((page) => Math.max(1, page - 1))}
+                      disabled={currentUserPage === 1}
+                    >
+                      Previous
+                    </button>
+                    <span className="datatable-page-number">
+                      Page {currentUserPage} of {userPageCount}
+                    </span>
+                    <button
+                      type="button"
+                      className="datatable-page-button"
+                      onClick={() => setUserPage((page) => Math.min(userPageCount, page + 1))}
+                      disabled={currentUserPage === userPageCount}
+                    >
+                      Next
+                    </button>
                   </div>
-                ))}
+                </div>
               </div>
             )}
           </div>

@@ -61,31 +61,22 @@
   padding: 0.1rem 0.5rem;
 }
 
-.users-grid {
-  display: grid;
-  gap: var(--space-md);
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  padding: var(--space-lg);
+.users-table-wrapper {
+  border: 0;
+  border-radius: 0;
 }
 
-.user-card {
+.users-table-wrapper table {
+  min-width: 680px;
+}
+
+.users-table-wrapper .user-cell {
   align-items: center;
-  background: #fff;
-  border: 1px solid #dfe7f3;
-  border-radius: var(--radius-lg);
   display: flex;
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  transition: all var(--transition-base);
 }
 
-.user-card:hover {
-  background: #f8faff;
-  border-color: #bfcff0;
-  box-shadow: 0 8px 20px rgba(48, 71, 116, 0.08);
-}
-
-.user-card-avatar {
+.mini-avatar {
   align-items: center;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   border-radius: 50%;
@@ -95,17 +86,12 @@
   flex-shrink: 0;
   font-size: 1.125rem;
   font-weight: 700;
-  height: 48px;
+  height: 34px;
   justify-content: center;
-  width: 48px;
+  width: 34px;
 }
 
-.user-card-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-card-name {
+.user-table-name {
   color: #172b4d;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -114,20 +100,12 @@
   white-space: nowrap;
 }
 
-.user-card-email {
+.user-table-email {
   color: #52709d;
   font-size: 0.8125rem;
-  margin-top: 0.125rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.user-card-meta {
-  align-items: center;
-  display: flex;
-  gap: var(--space-sm);
-  margin-top: 0.5rem;
 }
 
 .admin-users-page .badge-admin {
@@ -167,7 +145,7 @@
     align-items: stretch;
   }
 
-  .users-grid {
-    grid-template-columns: 1fr;
+  .users-table-wrapper {
+    overflow-x: auto;
   }
 }

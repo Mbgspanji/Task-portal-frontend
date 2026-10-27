@@ -35,6 +35,8 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
 
   // Filter
   const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
+  const [taskPage, setTaskPage] = useState(1);
+  const tasksPerPage = 10;
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -183,6 +185,16 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   const filteredTasks = filterStatus === 'all'
     ? tasks
     : tasks.filter((t) => t.status === filterStatus);
+  const orderedTasks = [...filteredTasks].sort((a, b) => {
+    const dateDifference = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    return dateDifference || a.id - b.id;
+  });
+  const taskPageCount = Math.max(1, Math.ceil(orderedTasks.length / tasksPerPage));
+  const currentTaskPage = Math.min(taskPage, taskPageCount);
+  const paginatedTasks = orderedTasks.slice(
+    (currentTaskPage - 1) * tasksPerPage,
+    currentTaskPage * tasksPerPage
+  );
 
   return (
     <div className={`dashboard-page ${taskOnly ? 'task-page' : ''}`}>
@@ -216,7 +228,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
 
           {/* Stats Row */}
           <div className="stats-grid fade-in">
-            <div className="stat-card" onClick={() => setFilterStatus('all')}>
+            <div className="stat-card" onClick={() => { setFilterStatus('all'); setTaskPage(1); }}>
               <div className="stat-icon stat-icon-total">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
               </div>
@@ -275,7 +287,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                   <button
                     key={status}
                     className={`filter-tab ${filterStatus === status ? 'active' : ''}`}
-                    onClick={() => setFilterStatus(status)}
+                    onClick={() => { setFilterStatus(status); setTaskPage(1); }}
                     id={`filter-${status}`}
                   >
                     {status === 'all' ? 'All' : STATUS_CONFIG[status as TaskStatus].label}
@@ -313,9 +325,9 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTasks.map((task, idx) => (
+                    {paginatedTasks.map((task, idx) => (
                       <tr key={task.id} className="task-row">
-                        <td className="row-num">{idx + 1}</td>
+                        <td className="row-num">{(currentTaskPage - 1) * tasksPerPage + idx + 1}</td>
                         <td className="task-title-cell">
                           <span className="task-title">{task.title}</span>
                         </td>
@@ -408,6 +420,34 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                     ))}
                   </tbody>
                 </table>
+                <div className="datatable-footer">
+                  <span className="datatable-summary">
+                    Showing {orderedTasks.length === 0 ? 0 : (currentTaskPage - 1) * tasksPerPage + 1}
+                    {' '}-{' '}
+                    {Math.min(currentTaskPage * tasksPerPage, orderedTasks.length)} of {orderedTasks.length}
+                  </span>
+                  <div className="datatable-pagination" aria-label="Task table pagination">
+                    <button
+                      type="button"
+                      className="datatable-page-button"
+                      onClick={() => setTaskPage((page) => Math.max(1, page - 1))}
+                      disabled={currentTaskPage === 1}
+                    >
+                      Previous
+                    </button>
+                    <span className="datatable-page-number">
+                      Page {currentTaskPage} of {taskPageCount}
+                    </span>
+                    <button
+                      type="button"
+                      className="datatable-page-button"
+                      onClick={() => setTaskPage((page) => Math.min(taskPageCount, page + 1))}
+                      disabled={currentTaskPage === taskPageCount}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
