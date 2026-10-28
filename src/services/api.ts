@@ -41,10 +41,12 @@ export const authApi = {
     api.post('/api/auth/login', { email, password }),
   register: (data: RegisterData) =>
     api.post('/api/auth/register', data),
-  verifyEmail: (token: string) =>
-    api.post('/api/auth/verify-email', { token }),
-  resendVerification: (email: string) =>
-    api.post('/api/auth/resend-verification', { email }),
+  /** Verify 6-digit OTP after registration */
+  verifyOtp: (email: string, otp: string) =>
+    api.post('/api/auth/verify-otp', { email, otp }),
+  /** Resend OTP to the given email */
+  resendOtp: (email: string) =>
+    api.post('/api/auth/resend-otp', { email }),
   getProfile: () => api.get('/api/auth/profile'),
 };
 
@@ -52,7 +54,7 @@ export const taskApi = {
   getTasks: () => api.get('/api/tasks'),
   createTask: (data: { title: string; description: string; status: string; userId?: number }) =>
     api.post('/api/tasks', data),
-  updateTask: (taskId: number, data: { title: string; description: string }) =>
+  updateTask: (taskId: number, data: { title: string; description: string; status?: string }) =>
     api.patch(`/api/tasks/${taskId}`, data),
   updateStatus: (taskId: number, status: string) =>
     api.patch(`/api/tasks/${taskId}/status`, { status }),

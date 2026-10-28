@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import type { FC, FormEvent } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
@@ -9,59 +9,69 @@ const VerifyEmailPage: FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const tokenParam = searchParams.get('token') || '';
   const emailParam = searchParams.get('email') || '';
 
-  const [token, setToken] = useState(tokenParam);
-  const [resendEmail, setResendEmail] = useState(emailParam);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [otpInput, setOtpInput]         = useState('');
+  const [resendEmail, setResendEmail]   = useState(emailParam);
+  const [isLoading, setIsLoading]       = useState(false);
+  const [isSuccess, setIsSuccess]       = useState(false);
+  const [error, setError]               = useState('');
   const [resendSuccess, setResendSuccess] = useState('');
-  const [isResending, setIsResending] = useState(false);
+  const [isResending, setIsResending]   = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  const performVerification = useCallback(async (tokenToVerify: string) => {
-    if (!tokenToVerify) return;
+  const startCooldown = (seconds: number) => {
+    setResendCooldown(seconds);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) { clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const code = otpInput.trim();
+
+    if (!code) {
+      setError('Masukkan kode OTP terlebih dahulu.');
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      setError('Kode OTP harus 6 digit angka.');
+      return;
+    }
+    if (!resendEmail.trim()) {
+      setError('Email tidak ditemukan. Silakan daftar ulang.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      const res = await authApi.verifyEmail(tokenToVerify);
+      const res = await authApi.verifyOtp(resendEmail.trim(), code);
       setIsSuccess(true);
       if (res.data.data?.token) {
         localStorage.setItem('authToken', res.data.data.token);
         localStorage.setItem('authUser', JSON.stringify(res.data.data.user));
       }
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 2000);
+      setTimeout(() => navigate('/dashboard', { replace: true }), 2000);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(axiosErr?.response?.data?.message || 'Token verifikasi tidak valid atau telah kedaluwarsa.');
+      setError(axiosErr?.response?.data?.message || 'Kode OTP tidak valid atau telah kedaluwarsa.');
     } finally {
       setIsLoading(false);
     }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (tokenParam) {
-      void performVerification(tokenParam);
-    }
-  }, [tokenParam, performVerification]);
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!token.trim()) {
-      setError('Masukkan token verifikasi.');
-      return;
-    }
-    void performVerification(token.trim());
   };
 
   const handleResend = async (e: FormEvent) => {
     e.preventDefault();
+    if (resendCooldown > 0) return;
+
     if (!resendEmail.trim()) {
-      setError('Masukkan email Anda untuk mengirim ulang token.');
+      setError('Masukkan email Anda untuk mengirim ulang OTP.');
       return;
     }
 
@@ -70,14 +80,13 @@ const VerifyEmailPage: FC = () => {
     setError('');
 
     try {
-      const res = await authApi.resendVerification(resendEmail.trim());
-      setResendSuccess(res.data.message || 'Token baru berhasil dikirimkan!');
-      if (res.data.data?.previewToken) {
-        setToken(res.data.data.previewToken);
-      }
+      await authApi.resendOtp(resendEmail.trim());
+      setResendSuccess('Kode OTP baru berhasil dikirimkan!');
+      setOtpInput('');
+      startCooldown(60);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(axiosErr?.response?.data?.message || 'Gagal mengirim token baru. Pastikan email terdaftar.');
+      setError(axiosErr?.response?.data?.message || 'Gagal mengirim OTP baru. Pastikan email terdaftar.');
     } finally {
       setIsResending(false);
     }
@@ -99,7 +108,7 @@ const VerifyEmailPage: FC = () => {
             <p className="login-subtitle">
               {isSuccess
                 ? 'Akun Anda telah aktif dan siap digunakan. Mengalihkan ke dashboard...'
-                : 'Masukkan token verifikasi yang dikirimkan ke Mailtrap Anda.'}
+                : 'Masukkan kode OTP 6 digit yang dikirimkan ke email Anda.'}
             </p>
 
             {isSuccess && (
@@ -125,17 +134,37 @@ const VerifyEmailPage: FC = () => {
 
             {!isSuccess && (
               <>
+                {/* Email field (editable in case they arrive directly) */}
+                {!emailParam && (
+                  <div className="form-group" style={{ marginTop: '1rem', textAlign: 'left' }}>
+                    <label htmlFor="verify-email" className="form-label">Alamat Email</label>
+                    <input
+                      id="verify-email"
+                      type="email"
+                      className="form-input"
+                      placeholder="Email yang didaftarkan"
+                      value={resendEmail}
+                      onChange={(e) => setResendEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="verify-form" style={{ marginTop: '1.5rem' }}>
                   <div className="form-group">
-                    <label htmlFor="token-manual-input" className="form-label">Token Verifikasi</label>
+                    <label htmlFor="otp-verify-input" className="form-label">Kode OTP (6 digit)</label>
                     <input
-                      id="token-manual-input"
+                      id="otp-verify-input"
                       type="text"
-                      className="form-input token-mono-input"
-                      placeholder="Masukkan 64 digit token"
-                      value={token}
-                      onChange={(e) => setToken(e.target.value)}
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      maxLength={6}
+                      className="form-input otp-input"
+                      placeholder="123456"
+                      value={otpInput}
+                      onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       required
+                      autoComplete="one-time-code"
                       disabled={isLoading}
                     />
                   </div>
@@ -143,7 +172,7 @@ const VerifyEmailPage: FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary btn-full"
-                    disabled={isLoading || !token.trim()}
+                    disabled={isLoading || otpInput.length !== 6}
                   >
                     {isLoading ? (
                       <>
@@ -151,20 +180,21 @@ const VerifyEmailPage: FC = () => {
                         Memverifikasi...
                       </>
                     ) : (
-                      'Verifikasi & Masuk'
+                      'Verifikasi &amp; Masuk'
                     )}
                   </button>
                 </form>
 
+                {/* Resend OTP */}
                 <div className="resend-section" style={{ marginTop: '2rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                    Belum menerima email token atau token kedaluwarsa?
+                    Belum menerima kode OTP atau kode sudah kedaluwarsa?
                   </p>
                   <form onSubmit={handleResend} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <input
                       type="email"
                       className="form-input"
-                      style={{ flex: 1, minWidth: '200px' }}
+                      style={{ flex: 1, minWidth: '180px' }}
                       placeholder="Email terdaftar Anda"
                       value={resendEmail}
                       onChange={(e) => setResendEmail(e.target.value)}
@@ -172,10 +202,15 @@ const VerifyEmailPage: FC = () => {
                     />
                     <button
                       type="submit"
-                      className="btn btn-secondary"
-                      disabled={isResending}
+                      className="btn btn-ghost btn-sm"
+                      disabled={isResending || resendCooldown > 0}
+                      style={{ whiteSpace: 'nowrap' }}
                     >
-                      {isResending ? 'Mengirim...' : 'Kirim Ulang Token'}
+                      {isResending
+                        ? 'Mengirim...'
+                        : resendCooldown > 0
+                          ? `Kirim Ulang (${resendCooldown}d)`
+                          : 'Kirim Ulang OTP'}
                     </button>
                   </form>
                 </div>

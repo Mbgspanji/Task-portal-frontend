@@ -652,3 +652,35 @@ tbody td {
     font-size: 0.8rem;
   }
 }
+
+/* ===== Mobile: prevent iOS/Chrome-mobile zoom on input focus ===== */
+@media (max-width: 768px) {
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px;
+  }
+
+  /* Login/Register form inputs need the same treatment */
+  .login-form-panel .form-input,
+  .login-form-panel .form-select {
+    font-size: 16px;
+  }
+}
+
+/* ===== Extra-small phones (≤380px) ===== */
+@media (max-width: 380px) {
+  .modal-content {
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
+}

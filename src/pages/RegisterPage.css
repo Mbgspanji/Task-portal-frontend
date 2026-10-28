@@ -187,6 +187,20 @@
   flex-wrap: wrap;
 }
 
+/* OTP Input */
+.otp-input {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-align: center;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  min-height: 3.5rem;
+  /* Prevent auto-zoom on iOS Safari/Chrome mobile */
+  font-size: max(1.5rem, 16px);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .register-page .login-container {
@@ -195,5 +209,45 @@
 
   .role-selection-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 400px) {
+  .register-page .login-welcome {
+    min-height: 180px;
+  }
+
+  .register-page .welcome-content h1 {
+    font-size: 1.55rem;
+  }
+
+  .register-page .feature-bullets {
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .register-page .feature-bullet {
+    font-size: 0.78rem;
+  }
+
+  .role-card {
+    padding: 0.75rem;
+  }
+
+  .role-card-desc {
+    overflow-wrap: anywhere;
+  }
+
+  .dev-token-notice code {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* OTP input on very small screens */
+@media (max-width: 400px) {
+  .otp-input {
+    letter-spacing: 0.3em;
+    font-size: max(1.2rem, 16px);
+    padding: 0.65rem 0.5rem;
   }
 }

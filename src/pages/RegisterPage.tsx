@@ -7,25 +7,36 @@ import './LoginPage.css';
 import './RegisterPage.css';
 
 const RegisterPage: FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('employee');
+  const [name, setName]               = useState('');
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [role, setRole]               = useState<UserRole>('employee');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [isLoading, setIsLoading]     = useState(false);
+  const [error, setError]             = useState('');
 
-  // Post-registration verification state
+  // Post-registration OTP verification state
   const [isRegistered, setIsRegistered] = useState(false);
-  const [previewToken, setPreviewToken] = useState<string | null>(null);
-  const [tokenInput, setTokenInput] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [otpInput, setOtpInput]         = useState('');
+  const [isVerifying, setIsVerifying]   = useState(false);
   const [verifySuccess, setVerifySuccess] = useState(false);
-  const [verifyError, setVerifyError] = useState('');
-  const [isResending, setIsResending] = useState(false);
-  const [resendMsg, setResendMsg] = useState('');
+  const [verifyError, setVerifyError]   = useState('');
+  const [isResending, setIsResending]   = useState(false);
+  const [resendMsg, setResendMsg]       = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const navigate = useNavigate();
+
+  // Countdown timer for resend cooldown
+  const startCooldown = (seconds: number) => {
+    setResendCooldown(seconds);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) { clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,14 +48,10 @@ const RegisterPage: FC = () => {
     }
 
     setIsLoading(true);
-
     try {
-      const res = await authApi.register({ name, email, password, role });
+      await authApi.register({ name, email, password, role });
       setIsRegistered(true);
-      if (res.data.data?.previewToken) {
-        setPreviewToken(res.data.data.previewToken);
-        setTokenInput(res.data.data.previewToken);
-      }
+      startCooldown(60);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setError(axiosErr?.response?.data?.message || 'Registrasi gagal. Silakan periksa data Anda.');
@@ -53,50 +60,51 @@ const RegisterPage: FC = () => {
     }
   };
 
-  const handleVerifyToken = async (e: FormEvent) => {
+  const handleVerifyOtp = async (e: FormEvent) => {
     e.preventDefault();
     setVerifyError('');
 
-    if (!tokenInput.trim()) {
-      setVerifyError('Silakan masukkan token verifikasi.');
+    const code = otpInput.trim();
+    if (!code) {
+      setVerifyError('Silakan masukkan kode OTP.');
+      return;
+    }
+    if (!/^\d{6}$/.test(code)) {
+      setVerifyError('Kode OTP harus 6 digit angka.');
       return;
     }
 
     setIsVerifying(true);
-
     try {
-      const res = await authApi.verifyEmail(tokenInput.trim());
+      const res = await authApi.verifyOtp(email, code);
       setVerifySuccess(true);
       if (res.data.data?.token) {
         localStorage.setItem('authToken', res.data.data.token);
         localStorage.setItem('authUser', JSON.stringify(res.data.data.user));
       }
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 1500);
+      setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      setVerifyError(axiosErr?.response?.data?.message || 'Token tidak valid atau kedaluwarsa.');
+      setVerifyError(axiosErr?.response?.data?.message || 'Kode OTP tidak valid atau sudah kedaluwarsa.');
     } finally {
       setIsVerifying(false);
     }
   };
 
   const handleResend = async () => {
+    if (resendCooldown > 0) return;
     setIsResending(true);
     setResendMsg('');
     setVerifyError('');
 
     try {
-      const res = await authApi.resendVerification(email);
-      setResendMsg('Token baru berhasil dikirim ke Mailtrap Anda!');
-      if (res.data.data?.previewToken) {
-        setPreviewToken(res.data.data.previewToken);
-        setTokenInput(res.data.data.previewToken);
-      }
+      await authApi.resendOtp(email);
+      setResendMsg('Kode OTP baru berhasil dikirim ke email Anda!');
+      setOtpInput('');
+      startCooldown(60);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      setVerifyError(axiosErr?.response?.data?.message || 'Gagal mengirim ulang token.');
+      setVerifyError(axiosErr?.response?.data?.message || 'Gagal mengirim ulang kode OTP.');
     } finally {
       setIsResending(false);
     }
@@ -113,14 +121,14 @@ const RegisterPage: FC = () => {
           <div className="welcome-content">
             <div className="login-logo">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L4 6V12C4 16.4183 7.58172 20 12 22C16.4183 20 20 12V6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="rgba(255,255,255,0.2)"/>
+                <path d="M12 2L4 6V12C4 16.4183 7.58172 20 12 22C16.4183 20 20 16.4183 20 12V6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="rgba(255,255,255,0.2)"/>
                 <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             <p className="welcome-kicker">Bergabung bersama kami</p>
             <h1>SecureTask Portal</h1>
             <p className="welcome-copy">
-              Registrasi akun baru dengan sistem keamanan token email berbasis Mailtrap.
+              Registrasi akun baru dengan verifikasi email berbasis kode OTP 6 digit yang aman.
             </p>
             <div className="feature-bullets">
               <div className="feature-bullet">
@@ -129,7 +137,7 @@ const RegisterPage: FC = () => {
               </div>
               <div className="feature-bullet">
                 <span className="bullet-dot" />
-                <span>Aktivasi token aman via Mailtrap</span>
+                <span>Verifikasi email aman via kode OTP</span>
               </div>
               <div className="feature-bullet">
                 <span className="bullet-dot" />
@@ -216,7 +224,7 @@ const RegisterPage: FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={isLoading}
                       tabIndex={-1}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                     >
                       {showPassword ? (
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -265,7 +273,7 @@ const RegisterPage: FC = () => {
                       <div className="role-card-icon">🛡️</div>
                       <div className="role-card-text">
                         <strong className="role-card-title">Admin</strong>
-                        <span className="role-card-desc">Akses penuh ke semua task & user</span>
+                        <span className="role-card-desc">Akses penuh ke semua task &amp; user</span>
                       </div>
                     </label>
                   </div>
@@ -280,7 +288,7 @@ const RegisterPage: FC = () => {
                   {isLoading ? (
                     <>
                       <span className="spinner" />
-                      Mendaftarkan & Mengirim Email...
+                      Mendaftarkan &amp; Mengirim OTP...
                     </>
                   ) : (
                     <>
@@ -299,12 +307,13 @@ const RegisterPage: FC = () => {
               </div>
             </>
           ) : (
-            /* Verification Screen After Successful Register */
+            /* OTP Verification Screen */
             <div className="verification-step-wrapper fade-in">
               <div className="verification-icon-badge">📬</div>
-              <h2 className="login-title">Periksa Inbox Mailtrap Anda</h2>
+              <h2 className="login-title">Verifikasi Email Anda</h2>
               <p className="login-subtitle">
-                Kami telah mengirimkan token aktivasi ke <strong>{email}</strong> melalui Mailtrap.
+                Kode OTP 6 digit telah dikirim ke <strong>{email}</strong>.<br />
+                Kode berlaku selama <strong>5 menit</strong>.
               </p>
 
               {verifySuccess ? (
@@ -314,13 +323,6 @@ const RegisterPage: FC = () => {
                 </div>
               ) : (
                 <>
-                  {previewToken && (
-                    <div className="dev-token-notice">
-                      <span className="dev-tag">Mailtrap Token:</span>
-                      <code>{previewToken}</code>
-                    </div>
-                  )}
-
                   {resendMsg && (
                     <div className="alert alert-success">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -335,34 +337,38 @@ const RegisterPage: FC = () => {
                     </div>
                   )}
 
-                  <form onSubmit={handleVerifyToken} className="verify-form">
+                  <form onSubmit={handleVerifyOtp} className="verify-form">
                     <div className="form-group">
-                      <label htmlFor="verify-token-input" className="form-label">Masukkan Token Verifikasi</label>
+                      <label htmlFor="otp-input" className="form-label">Kode OTP (6 digit)</label>
                       <input
-                        id="verify-token-input"
+                        id="otp-input"
                         type="text"
-                        className="form-input token-mono-input"
-                        placeholder="Contoh: a89f6d..."
-                        value={tokenInput}
-                        onChange={(e) => setTokenInput(e.target.value)}
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        className="form-input otp-input"
+                        placeholder="123456"
+                        value={otpInput}
+                        onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         required
+                        autoComplete="one-time-code"
                         disabled={isVerifying}
                       />
                     </div>
 
                     <button
                       type="submit"
-                      id="btn-verify-token"
+                      id="btn-verify-otp"
                       className="btn btn-primary btn-full"
-                      disabled={isVerifying || !tokenInput.trim()}
+                      disabled={isVerifying || otpInput.length !== 6}
                     >
                       {isVerifying ? (
                         <>
                           <span className="spinner" />
-                          Memverifikasi Akun...
+                          Memverifikasi OTP...
                         </>
                       ) : (
-                        '✓ Aktivasi & Masuk Akun'
+                        '✓ Verifikasi & Aktifkan Akun'
                       )}
                     </button>
                   </form>
@@ -372,9 +378,13 @@ const RegisterPage: FC = () => {
                       type="button"
                       className="btn btn-ghost btn-sm"
                       onClick={handleResend}
-                      disabled={isResending}
+                      disabled={isResending || resendCooldown > 0}
                     >
-                      {isResending ? 'Mengirim ulang...' : '↺ Kirim Ulang Token'}
+                      {isResending
+                        ? 'Mengirim...'
+                        : resendCooldown > 0
+                          ? `↺ Kirim Ulang (${resendCooldown}d)`
+                          : '↺ Kirim Ulang OTP'}
                     </button>
                     <Link to="/login" className="btn btn-ghost btn-sm">
                       Kembali ke Login

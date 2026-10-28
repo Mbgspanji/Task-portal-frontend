@@ -36,8 +36,6 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
 
-  // Status update states
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -113,10 +111,24 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
           title: newTitle,
           description: newDesc,
         });
+        let updatedTask = {
+          ...res.data.data,
+          status: normalizeTaskStatus(res.data.data.status),
+        };
+
+        if (newStatus !== editingTask.status) {
+          const statusRes = await taskApi.updateStatus(editingTask.id, newStatus);
+          updatedTask = {
+            ...updatedTask,
+            ...statusRes.data.data,
+            status: normalizeTaskStatus(statusRes.data.data.status),
+          };
+        }
+
         setTasks((prev) =>
           prev.map((task) =>
             task.id === editingTask.id
-              ? { ...task, ...res.data.data, status: normalizeTaskStatus(res.data.data.status) }
+              ? { ...task, ...updatedTask }
               : task
           )
         );
@@ -150,24 +162,6 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
       );
     } finally {
       setIsCreating(false);
-    }
-  };
-
-  const handleStatusChange = async (taskId: number, newStatusVal: TaskStatus) => {
-    setUpdatingId(taskId);
-    try {
-      const res = await taskApi.updateStatus(taskId, newStatusVal);
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === taskId
-            ? { ...t, ...res.data.data, status: normalizeTaskStatus(res.data.data.status) }
-            : t
-        )
-      );
-    } catch {
-      setError('Gagal memperbarui status task.');
-    } finally {
-      setUpdatingId(null);
     }
   };
 
@@ -375,17 +369,9 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                             </td>
                           )}
                           <td>
-                            <select
-                              className={`status-select badge ${STATUS_CONFIG[task.status].className}`}
-                              value={task.status}
-                              onChange={(e) => handleStatusChange(task.id, e.target.value as TaskStatus)}
-                              disabled={updatingId === task.id || (!canManage)}
-                              id={`status-select-${task.id}`}
-                            >
-                              {STATUS_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                            </select>
+                            <span className={`status-badge badge ${STATUS_CONFIG[task.status].className}`}>
+                              {STATUS_CONFIG[task.status].label}
+                            </span>
                           </td>
                           <td className="date-cell">
                             {new Date(task.created_at).toLocaleDateString('id-ID', {
@@ -548,7 +534,21 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                 />
               </div>
 
-              {!editingTask && (
+              {editingTask ? (
+                <div className="form-group">
+                  <label htmlFor="task-edit-status" className="form-label">Status Task</label>
+                  <select
+                    id="task-edit-status"
+                    className="form-select"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value as TaskStatus)}
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
                 <div className="form-group">
                   <label htmlFor="task-status" className="form-label">Status Awal</label>
                   <select

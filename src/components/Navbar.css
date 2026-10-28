@@ -203,9 +203,9 @@
     align-items: center;
     bottom: auto;
     flex-direction: row;
-    height: 64px;
+    height: 60px;
     justify-content: space-between;
-    padding: 0 1.25rem;
+    padding: 0 max(0.85rem, env(safe-area-inset-right)) 0 max(0.85rem, env(safe-area-inset-left));
     position: fixed;
     top: 0;
     width: 100%;
@@ -236,7 +236,7 @@
   /* Slide-down mobile drawer that doesn't push down the document */
   .navbar-links {
     position: absolute;
-    top: 64px;
+    top: 60px;
     left: 0;
     right: 0;
     background: #2844bb;
@@ -283,15 +283,56 @@
 
 @media (max-width: 420px) {
   .navbar {
-    padding: 0 0.85rem;
+    height: 54px;
+    min-width: 0;
+    padding: 0 0.6rem;
+  }
+
+  .navbar-brand {
+    gap: 0.45rem;
+    min-width: 0;
+  }
+
+  .navbar-logo {
+    height: 30px;
+    width: 30px;
+  }
+
+  .navbar-logo svg {
+    height: 18px;
+    width: 18px;
   }
 
   .navbar-title {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .navbar-user {
+    gap: 0.4rem;
+    margin-right: 0.35rem;
+  }
+
+  .user-avatar {
+    height: 30px;
+    width: 30px;
   }
 
   .navbar-user .btn-ghost {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.5rem;
+    font-size: 0;
+    min-height: 30px;
+    padding: 0.35rem;
+    width: 30px;
+  }
+
+  .navbar-menu-toggle {
+    gap: 4px;
+    padding: 0.35rem;
+  }
+
+  .navbar-menu-toggle span {
+    width: 18px;
   }
 }
