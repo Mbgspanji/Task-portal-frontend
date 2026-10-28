@@ -575,3 +575,55 @@
 .tasks-section table tbody tr.task-row-placeholder:nth-child(even) {
   background-color: #f7f9fd;
 }
+
+/* Sortir Urutan Toolbar Styling */
+.tasks-toolbar .sort-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #ffffff;
+  border: 1px solid #d8e2f0;
+  border-radius: 0.65rem;
+  padding: 0.35rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.tasks-toolbar .sort-box:focus-within {
+  border-color: #3150cf;
+  box-shadow: 0 0 0 3px rgba(49, 80, 207, 0.12);
+}
+
+.tasks-toolbar .sort-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #526484;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tasks-toolbar .sort-select {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #172b4d;
+  cursor: pointer;
+  padding: 0.15rem 0;
+}
+
+.tasks-toolbar .sort-select option {
+  background: #ffffff;
+  color: #172b4d;
+}
+
+@media (max-width: 520px) {
+  .tasks-toolbar .sort-box {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

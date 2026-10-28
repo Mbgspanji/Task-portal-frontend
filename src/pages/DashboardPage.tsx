@@ -26,6 +26,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
+  const [sortOrder, setSortOrder] = useState<'oldest_first' | 'newest_first'>('oldest_first');
   const [taskPage, setTaskPage] = useState(1);
   const location = useLocation();
   const tasksPerPage = 5;
@@ -110,7 +111,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   // Reset dropdown menu aksi saat berpindah route / tab atau saat ganti halaman / filter
   useEffect(() => {
     setOpenActionId(null);
-  }, [location.pathname, taskPage, filterStatus, searchQuery]);
+  }, [location.pathname, taskPage, filterStatus, searchQuery, sortOrder]);
 
   // Reset dropdown menu aksi saat unmount
   useEffect(() => {
@@ -183,8 +184,8 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
 
         const res = await taskApi.createTask(payload);
         setTasks((prev) => [
-          { ...res.data.data, status: normalizeTaskStatus(res.data.data.status) },
           ...prev,
+          { ...res.data.data, status: normalizeTaskStatus(res.data.data.status) },
         ]);
       }
 
@@ -230,8 +231,10 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   });
 
   const orderedTasks = [...filteredTasks].sort((a, b) => {
-    const dateDifference = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    return dateDifference || b.id - a.id;
+    const timeA = new Date(a.created_at).getTime();
+    const timeB = new Date(b.created_at).getTime();
+    const dateDifference = sortOrder === 'oldest_first' ? timeA - timeB : timeB - timeA;
+    return dateDifference || (sortOrder === 'oldest_first' ? a.id - b.id : b.id - a.id);
   });
 
   const taskPageCount = Math.max(1, Math.ceil(orderedTasks.length / tasksPerPage));
@@ -352,6 +355,33 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                     {status === 'all' ? 'Semua' : STATUS_CONFIG[status as TaskStatus].label}
                   </button>
                 ))}
+              </div>
+
+              {/* Filter Sortir Urutan */}
+              <div className="sort-box">
+                <label htmlFor="task-sort-select" className="sort-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="4" y1="6" x2="16" y2="6" />
+                    <line x1="4" y1="12" x2="11" y2="12" />
+                    <line x1="4" y1="18" x2="7" y2="18" />
+                    <polyline points="15 15 18 18 21 15" />
+                    <line x1="18" y1="9" x2="18" y2="18" />
+                  </svg>
+                  Urutan:
+                </label>
+                <select
+                  id="task-sort-select"
+                  className="sort-select"
+                  value={sortOrder}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value as 'oldest_first' | 'newest_first');
+                    setTaskPage(1);
+                  }}
+                  aria-label="Urutkan task"
+                >
+                  <option value="oldest_first">⬇️ Baru di Bawah</option>
+                  <option value="newest_first">⬆️ Baru di Atas</option>
+                </select>
               </div>
 
               <button className="btn btn-ghost btn-sm" onClick={fetchTasks} id="btn-refresh">
