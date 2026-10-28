@@ -251,7 +251,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
           <div className="dashboard-header fade-in">
             <div>
               <h1 className="dashboard-title">
-                {taskOnly ? '📋 Manajemen Tugas (CRUD)' : user?.role === 'admin' ? '🛡️ Admin Dashboard' : '📋 Task Saya'}
+                {taskOnly ? '📝 Manajemen Tugas (CRUD)' : user?.role === 'admin' ? '🛡️ Admin Dashboard' : '📊 Task Saya'}
               </h1>
               <p className="dashboard-subtitle">
                 {taskOnly
