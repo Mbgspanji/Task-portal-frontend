@@ -368,7 +368,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
             ) : orderedTasks.length === 0 ? (
               <div className="empty-state">
                 <div className="icon">📋</div>
-                <p>{filterStatus === 'all' ? 'Belum ada task. Buat task pertama Anda!' : `Tidak ada task dengan status "${filterStatus}".`}</p>
+                <p>{filterStatus === 'all' ? 'Belum ada task. Buat task pertama Anda!' : `Tidak ada task dengan status "${STATUS_CONFIG[filterStatus].label}".`}</p>
               </div>
             ) : (
               <div className="table-wrapper">

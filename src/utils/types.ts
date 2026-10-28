@@ -77,15 +77,15 @@ export const normalizeTaskStatus = (status: string): TaskStatus => {
 
 // Status display config
 export const STATUS_CONFIG: Record<TaskStatus, { label: string; className: string }> = {
-  todo: { label: 'To-Do', className: 'badge-todo' },
-  in_progress: { label: 'In Progress', className: 'badge-in-progress' },
-  done: { label: 'Done', className: 'badge-done' },
+  todo: { label: 'TO DO', className: 'badge-todo' },
+  in_progress: { label: 'IN PROGRESS', className: 'badge-in-progress' },
+  done: { label: 'DONE', className: 'badge-done' },
 };
 
 export const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'todo', label: 'To-Do' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
+  { value: 'todo', label: 'TO DO' },
+  { value: 'in_progress', label: 'IN PROGRESS' },
+  { value: 'done', label: 'DONE' },
 ];
 
 export const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
