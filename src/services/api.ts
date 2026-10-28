@@ -1,15 +1,12 @@
 import axios from 'axios';
+import type { CreateUserData, UpdateUserData, RegisterData } from '../utils/types';
 
-const BASE_URL = import.meta.env.VITE_API_URL;
-
-if (!BASE_URL) {
-  throw new Error('VITE_API_URL must be configured before starting the application.');
-}
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
+  timeout: 15000,
 });
 
 api.interceptors.request.use(
@@ -26,10 +23,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Only redirect to login on 401 if not already on login, register, or verify-email page
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
-      if (window.location.pathname !== '/login') {
+      const publicPaths = ['/login', '/register', '/verify-email'];
+      if (!publicPaths.some((p) => window.location.pathname.startsWith(p))) {
         window.location.href = '/login';
       }
     }
@@ -40,12 +39,18 @@ api.interceptors.response.use(
 export const authApi = {
   login: (email: string, password: string) =>
     api.post('/api/auth/login', { email, password }),
+  register: (data: RegisterData) =>
+    api.post('/api/auth/register', data),
+  verifyEmail: (token: string) =>
+    api.post('/api/auth/verify-email', { token }),
+  resendVerification: (email: string) =>
+    api.post('/api/auth/resend-verification', { email }),
   getProfile: () => api.get('/api/auth/profile'),
 };
 
 export const taskApi = {
   getTasks: () => api.get('/api/tasks'),
-  createTask: (data: { title: string; description: string; status: string }) =>
+  createTask: (data: { title: string; description: string; status: string; userId?: number }) =>
     api.post('/api/tasks', data),
   updateTask: (taskId: number, data: { title: string; description: string }) =>
     api.patch(`/api/tasks/${taskId}`, data),
@@ -55,9 +60,15 @@ export const taskApi = {
 };
 
 export const adminApi = {
-  createEmployee: (data: { name: string; email: string; password: string }) =>
-    api.post('/api/admin/users', data),
   getAllUsers: () => api.get('/api/admin/users'),
+  createUser: (data: CreateUserData) =>
+    api.post('/api/admin/users', data),
+  createEmployee: (data: { name: string; email: string; password: string; role?: string }) =>
+    api.post('/api/admin/users', data),
+  updateUser: (id: number, data: UpdateUserData) =>
+    api.patch(`/api/admin/users/${id}`, data),
+  deleteUser: (id: number) =>
+    api.delete(`/api/admin/users/${id}`),
 };
 
 export default api;

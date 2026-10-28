@@ -23,7 +23,31 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  is_verified?: boolean;
   created_at: string;
+  updated_at?: string;
+}
+
+// API payload types
+export interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  role?: UserRole;
+  password?: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  role?: UserRole;
 }
 
 // API response wrapper
@@ -62,4 +86,9 @@ export const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: 'todo', label: 'To-Do' },
   { value: 'in_progress', label: 'In Progress' },
   { value: 'done', label: 'Done' },
+];
+
+export const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
+  { value: 'employee', label: 'Employee', description: 'Can manage own tasks' },
+  { value: 'admin', label: 'Admin', description: 'Can manage all tasks & users' },
 ];

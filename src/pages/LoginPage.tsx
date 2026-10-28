@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FC, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './LoginPage.css';
 
@@ -58,6 +58,7 @@ const LoginPage: FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isUnverified, setIsUnverified] = useState(false);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const [lockoutEmail, setLockoutEmail] = useState('');
 
@@ -108,7 +109,13 @@ const LoginPage: FC = () => {
         response?: { data?: { message?: string }; status?: number };
       };
 
-      if (axiosErr?.response?.status === 429) {
+      if (axiosErr?.response?.status === 403) {
+        setIsUnverified(true);
+        setError(
+          axiosErr.response.data?.message ||
+          'Akun Anda belum diverifikasi. Silakan periksa email Mailtrap Anda untuk kode token aktivasi.'
+        );
+      } else if (axiosErr?.response?.status === 429) {
         setError(
           axiosErr.response.data?.message ||
           'Too many login attempts. Please try again in 15 minutes.'
@@ -161,7 +168,17 @@ const LoginPage: FC = () => {
           {error && (
             <div className="alert alert-error" role="alert">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {error}
+              <div>
+                <p>{error}</p>
+                {isUnverified && (
+                  <Link
+                    to={`/verify-email?email=${encodeURIComponent(email)}`}
+                    style={{ color: '#3150cf', fontWeight: 600, display: 'inline-block', marginTop: '0.35rem' }}
+                  >
+                    → Verifikasi Token Sekarang
+                  </Link>
+                )}
+              </div>
             </div>
           )}
 
@@ -235,6 +252,13 @@ const LoginPage: FC = () => {
             )}
           </button>
           </form>
+
+          <div className="auth-switch" style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.875rem', color: '#64748b' }}>
+            <span>Belum memiliki akun?</span>{' '}
+            <Link to="/register" style={{ color: '#3150cf', fontWeight: 600, textDecoration: 'none' }}>
+              Daftar di sini
+            </Link>
+          </div>
 
           <p className="login-footer">
             Protected by secure JWT authentication
