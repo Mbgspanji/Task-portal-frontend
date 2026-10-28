@@ -558,3 +558,20 @@
   height: 60px;
   border-bottom: 1px solid rgba(99, 120, 255, 0.05);
 }
+
+/* Zebra Striping: Baris 1 putih, baris 2 agak abu-abu, baris 3 putih, dst */
+.tasks-section table tbody tr.task-row:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.tasks-section table tbody tr.task-row:nth-child(even) {
+  background-color: #f4f7fc;
+}
+
+.tasks-section table tbody tr.task-row:hover:not(.task-row-placeholder) {
+  background-color: #eaf0fb !important;
+}
+
+.tasks-section table tbody tr.task-row-placeholder:nth-child(even) {
+  background-color: #f7f9fd;
+}
