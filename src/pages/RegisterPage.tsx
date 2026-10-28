@@ -2,7 +2,6 @@ import { useState } from 'react';
 import type { FC, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
-import type { UserRole } from '../utils/types';
 import './LoginPage.css';
 import './RegisterPage.css';
 
@@ -10,7 +9,6 @@ const RegisterPage: FC = () => {
   const [name, setName]               = useState('');
   const [email, setEmail]             = useState('');
   const [password, setPassword]       = useState('');
-  const [role, setRole]               = useState<UserRole>('employee');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading]     = useState(false);
   const [error, setError]             = useState('');
@@ -49,7 +47,7 @@ const RegisterPage: FC = () => {
 
     setIsLoading(true);
     try {
-      await authApi.register({ name, email, password, role });
+      await authApi.register({ name, email, password, role: 'employee' });
       setIsRegistered(true);
       startCooldown(60);
     } catch (err: unknown) {
@@ -133,7 +131,7 @@ const RegisterPage: FC = () => {
             <div className="feature-bullets">
               <div className="feature-bullet">
                 <span className="bullet-dot" />
-                <span>Pilih role sesuai otoritas Anda</span>
+                <span>Akun langsung aktif sebagai Employee</span>
               </div>
               <div className="feature-bullet">
                 <span className="bullet-dot" />
@@ -232,50 +230,6 @@ const RegisterPage: FC = () => {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                       )}
                     </button>
-                  </div>
-                </div>
-
-                {/* Role Selector */}
-                <div className="form-group">
-                  <label className="form-label">Pilih Role Akun *</label>
-                  <div className="role-selection-grid">
-                    <label
-                      className={`role-card ${role === 'employee' ? 'selected' : ''}`}
-                      onClick={() => setRole('employee')}
-                    >
-                      <input
-                        type="radio"
-                        name="user-role"
-                        value="employee"
-                        checked={role === 'employee'}
-                        onChange={() => setRole('employee')}
-                        className="role-radio"
-                      />
-                      <div className="role-card-icon">👤</div>
-                      <div className="role-card-text">
-                        <strong className="role-card-title">Employee</strong>
-                        <span className="role-card-desc">Kelola dan update task pribadi</span>
-                      </div>
-                    </label>
-
-                    <label
-                      className={`role-card ${role === 'admin' ? 'selected' : ''}`}
-                      onClick={() => setRole('admin')}
-                    >
-                      <input
-                        type="radio"
-                        name="user-role"
-                        value="admin"
-                        checked={role === 'admin'}
-                        onChange={() => setRole('admin')}
-                        className="role-radio"
-                      />
-                      <div className="role-card-icon">🛡️</div>
-                      <div className="role-card-text">
-                        <strong className="role-card-title">Admin</strong>
-                        <span className="role-card-desc">Akses penuh ke semua task &amp; user</span>
-                      </div>
-                    </label>
                   </div>
                 </div>
 
