@@ -334,3 +334,22 @@
     width: 100%;
   }
 }
+
+/* Consistent 5-row table height and placeholder styling */
+.user-table-row {
+  height: 60px;
+}
+
+.user-row-placeholder {
+  pointer-events: none;
+  user-select: none;
+}
+
+.user-row-placeholder:hover {
+  background-color: transparent !important;
+}
+
+.user-row-placeholder td {
+  height: 60px;
+  border-bottom: 1px solid rgba(99, 120, 255, 0.05);
+}

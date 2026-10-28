@@ -38,7 +38,7 @@ const AdminUsersPage: FC = () => {
 
   const [successMsg, setSuccessMsg] = useState('');
   const [userPage, setUserPage] = useState(1);
-  const usersPerPage = 10;
+  const usersPerPage = 5;
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -321,6 +321,18 @@ const AdminUsersPage: FC = () => {
                         </tr>
                       );
                     })}
+                    {/* Baris placeholder agar tabel selalu konsisten 5 baris */}
+                    {Array.from({ length: Math.max(0, usersPerPage - paginatedUsers.length) }).map((_, i) => (
+                      <tr key={`user-placeholder-${i}`} className="user-table-row user-row-placeholder" aria-hidden="true">
+                        <td className="row-num" style={{ opacity: 0 }}>—</td>
+                        <td style={{ opacity: 0 }}>&nbsp;</td>
+                        <td className="user-table-email" style={{ opacity: 0 }}>&nbsp;</td>
+                        <td><span style={{ visibility: 'hidden' }}>—</span></td>
+                        <td><span style={{ visibility: 'hidden' }}>—</span></td>
+                        <td className="user-card-date" style={{ opacity: 0 }}>&nbsp;</td>
+                        <td style={{ textAlign: 'right', opacity: 0 }}>&nbsp;</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
 

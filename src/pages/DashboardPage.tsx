@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { FC, FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { adminApi, taskApi } from '../services/api';
 import type { Task, TaskStatus, User } from '../utils/types';
 import { normalizeTaskStatus, STATUS_CONFIG, STATUS_OPTIONS } from '../utils/types';
@@ -26,7 +27,8 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
   const [taskPage, setTaskPage] = useState(1);
-  const tasksPerPage = 10;
+  const location = useLocation();
+  const tasksPerPage = 5;
 
   // Create / Edit task form
   const [newTitle, setNewTitle] = useState('');
@@ -78,6 +80,43 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentDate(new Date()), 1000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  // Tutup dropdown menu aksi saat klik di luar area menu atau tombol Escape
+  useEffect(() => {
+    if (openActionId === null) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.action-menu')) {
+        setOpenActionId(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenActionId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openActionId]);
+
+  // Reset dropdown menu aksi saat berpindah route / tab atau saat ganti halaman / filter
+  useEffect(() => {
+    setOpenActionId(null);
+  }, [location.pathname, taskPage, filterStatus, searchQuery]);
+
+  // Reset dropdown menu aksi saat unmount
+  useEffect(() => {
+    return () => {
+      setOpenActionId(null);
+    };
   }, []);
 
   const handleOpenCreateModal = () => {
@@ -430,6 +469,18 @@ const DashboardPage: FC<DashboardPageProps> = ({ taskOnly = false }) => {
                         </tr>
                       );
                     })}
+                    {/* Baris placeholder agar tampilan tabel selalu konsisten 5 baris */}
+                    {Array.from({ length: Math.max(0, tasksPerPage - paginatedTasks.length) }).map((_, i) => (
+                      <tr key={`task-placeholder-${i}`} className="task-row task-row-placeholder" aria-hidden="true">
+                        <td className="row-num" style={{ opacity: 0 }}>—</td>
+                        <td className="task-title-cell" style={{ opacity: 0 }}>&nbsp;</td>
+                        <td className="task-desc-cell" style={{ opacity: 0 }}>&nbsp;</td>
+                        {user?.role === 'admin' && <td style={{ opacity: 0 }}>&nbsp;</td>}
+                        <td><span style={{ visibility: 'hidden' }}>—</span></td>
+                        <td className="date-cell" style={{ opacity: 0 }}>&nbsp;</td>
+                        <td style={{ textAlign: 'right', opacity: 0 }}>&nbsp;</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
 

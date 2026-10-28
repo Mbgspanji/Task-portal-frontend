@@ -22,7 +22,7 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <DashboardPage key="dashboard" />
               </ProtectedRoute>
             }
           />
@@ -30,7 +30,7 @@ function App() {
             path="/tasks"
             element={
               <ProtectedRoute>
-                <DashboardPage taskOnly />
+                <DashboardPage key="tasks" taskOnly />
               </ProtectedRoute>
             }
           />
